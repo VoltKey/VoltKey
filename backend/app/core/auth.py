@@ -47,9 +47,13 @@ def verify_supabase_token(
                 settings.SUPABASE_JWT_SECRET,
                 algorithms=["HS256", "ES256", "RS256"],
                 audience="authenticated",
-                options={"verify_exp": True, "verify_signature": False},
+                options={"verify_exp": True, "verify_signature": True},
             )
         else:
+            logger.warning(
+                "SUPABASE_JWT_SECRET is not set — JWT verification is disabled. "
+                "Set this in backend/.env for production."
+            )
             payload = jwt.get_unverified_claims(token)
     except ExpiredSignatureError:
         raise HTTPException(
@@ -58,12 +62,18 @@ def verify_supabase_token(
         )
     except JWTError as exc:
         logger.warning(f"JWT verification failed: {exc}")
-        try:
-            payload = jwt.get_unverified_claims(token)
-        except Exception:
+        if not settings.SUPABASE_JWT_SECRET:
+            try:
+                payload = jwt.get_unverified_claims(token)
+            except Exception:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid token",
+                )
+        else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
+                detail=f"Invalid token: {exc}",
             )
 
     if payload.get("role") != "authenticated" and payload.get("role") != "anon":

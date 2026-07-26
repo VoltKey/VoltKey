@@ -8,6 +8,7 @@ from app.config import settings
 from app.api.v1 import analytics, chat, health, keys, provider_keys, users
 from app import db as _db_module
 from app.services.router import router_engine
+from app.core.ratelimit import InMemoryRateLimiter
 
 logger = logging.getLogger("voltkey.main")
 
@@ -16,15 +17,30 @@ logger = logging.getLogger("voltkey.main")
 async def lifespan(app: FastAPI):
     """Startup / shutdown hook — clean up connections on exit."""
     logger.info("⚡ VoltKey starting up")
+
+    # Auto-create DB tables if DATABASE_URL is configured
+    try:
+        engine = _db_module.database._get_engine()
+        async with engine.begin() as conn:
+            from app.db.models import Base
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables verified / created")
+    except RuntimeError:
+        logger.info("No DATABASE_URL configured — skipping table creation")
+    except Exception as exc:
+        logger.warning(f"Table creation skipped (non-fatal): {exc}")
+
     yield
+
     logger.info("VoltKey shutting down — closing connections")
     # Close httpx client pool
     await router_engine.client.aclose()
     # Dispose SQLAlchemy async engine (if it was ever created)
-    engine = _db_module.database._engine
-    if engine is not None:
-        await engine.dispose()
+    if _db_module.database._engine is not None:
+        await _db_module.database._engine.dispose()
 
+
+_rate_limiter = InMemoryRateLimiter(max_requests=60, window_seconds=60)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -33,6 +49,21 @@ app = FastAPI(
     description="VoltKey — Unified LLM Gateway. One key, every model.",
     lifespan=lifespan,
 )
+
+# ── Rate limiting middleware ──────────────────────────────────────────────────
+@app.middleware("http")
+async def rate_limit_middleware(request, call_next):
+    if request.url.path.startswith("/api/") or request.url.path.startswith("/v1/"):
+        client_ip = request.client.host if request.client else "unknown"
+        ok, retry_after = _rate_limiter.check(client_ip)
+        if not ok:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=429,
+                content={"detail": f"Rate limit exceeded. Retry after {retry_after}s."},
+                headers={"Retry-After": str(retry_after)},
+            )
+    return await call_next(request)
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 # NOTE: allow_origins=["*"] + allow_credentials=True is rejected by every

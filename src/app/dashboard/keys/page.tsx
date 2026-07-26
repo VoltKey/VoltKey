@@ -40,7 +40,7 @@ export default function KeysPage() {
     try {
       const result = await keysApi.create(newKeyName || "Default Key");
       setCreatedKey(result);
-      setKeys((prev) => [{ id: result.id, name: result.name, is_active: true, created_at: result.created_at, display_hint: result.key.slice(0, 20) + "••••" }, ...prev]);
+      setKeys((prev) => [{ id: result.id, name: result.name, is_active: true, created_at: result.created_at, display_hint: "vk_live_" + "•".repeat(16) }, ...prev]);
       setShowForm(false);
       setNewKeyName("");
     } catch (err) {

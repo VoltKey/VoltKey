@@ -9,7 +9,8 @@ import { BoltMark } from "@/components/BoltMark";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/dashboard";
+  const rawRedirect = searchParams.get("redirect") ?? "/dashboard";
+  const redirect = rawRedirect.startsWith("/dashboard") ? rawRedirect : "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

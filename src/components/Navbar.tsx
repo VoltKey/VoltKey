@@ -71,13 +71,13 @@ export function Navbar() {
         {/* ── Right CTAs ── */}
         <div className="flex items-center gap-4 shrink-0">
           <Link
-            href="/login"
+            href="/auth/login"
             className="font-mono text-sm text-muted hover:text-primary transition-colors duration-200"
           >
             Log in
           </Link>
           <Link
-            href="/signup"
+            href="/auth/signup"
             className="btn-volt font-mono text-sm font-bold px-4 py-2 inline-flex items-center"
             style={{ fontSize: "13px" }}
           >
