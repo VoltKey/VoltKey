@@ -53,12 +53,34 @@ def verify_supabase_token(
     token = _extract_bearer(authorization)
 
     try:
-        parts = token.split(".")
-        if len(parts) >= 2:
-            padded = parts[1] + "=" * (-len(parts[1]) % 4)
-            payload = json.loads(base64.urlsafe_b64decode(padded))
+        if settings.SUPABASE_JWT_SECRET:
+            try:
+                payload = jwt.decode(
+                    token,
+                    settings.SUPABASE_JWT_SECRET,
+                    algorithms=["HS256", "ES256", "RS256"],
+                    audience="authenticated",
+                    options={"verify_exp": True, "verify_signature": False},
+                )
+            except Exception:
+                parts = token.split(".")
+                if len(parts) >= 2:
+                    padded = parts[1] + "=" * (-len(parts[1]) % 4)
+                    payload = json.loads(base64.urlsafe_b64decode(padded))
+                else:
+                    payload = jwt.get_unverified_claims(token)
         else:
-            payload = jwt.get_unverified_claims(token)
+            parts = token.split(".")
+            if len(parts) >= 2:
+                padded = parts[1] + "=" * (-len(parts[1]) % 4)
+                payload = json.loads(base64.urlsafe_b64decode(padded))
+            else:
+                payload = jwt.get_unverified_claims(token)
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired — please re-authenticate",
+        )
     except Exception as exc:
         logger.warning(f"JWT verification failed: {exc}")
         raise HTTPException(

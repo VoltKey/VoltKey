@@ -1,4 +1,6 @@
 import os
+import tempfile
+import time
 from dotenv import load_dotenv, set_key
 
 # Explicit path to backend/.env — relative to this file (backend/app/config.py)
@@ -16,21 +18,48 @@ def _fix_db_url(url: str) -> str:
     return url
 
 
+def _lock_path() -> str:
+    return os.path.join(tempfile.gettempdir(), ".voltkey_fernet_generate.lock")
+
+
 def _auto_generate_fernet_key() -> str:
     """
-    Called exactly once when ENCRYPTION_SECRET_KEY is absent.
-    Generates a Fernet key, writes it to backend/.env, and returns it
-    so the running process has it immediately without a restart.
+    Called when ENCRYPTION_SECRET_KEY is absent. Uses a file-based lock so
+    multiple concurrent workers don't each generate a different key.
     """
     from cryptography.fernet import Fernet
 
-    key = Fernet.generate_key().decode()
-    set_key(_ENV_FILE, "ENCRYPTION_SECRET_KEY", key)
-    os.environ["ENCRYPTION_SECRET_KEY"] = key
+    lock_file = _lock_path()
 
-    print("\n⚡ [VoltKey] ENCRYPTION_SECRET_KEY was not set.")
-    print(f"   Generated a new Fernet key and saved it to:\n   {_ENV_FILE}")
-    print("   This key encrypts BYOK provider keys at rest — keep the .env file safe.\n")
+    # Try to acquire a lock (wait up to 10s for another worker to finish)
+    for attempt in range(50):
+        try:
+            fd = os.open(lock_file, os.O_CREAT | os.O_EXCL)
+            os.close(fd)
+            break
+        except FileExistsError:
+            time.sleep(0.2)
+    else:
+        # Lock never acquired — another process probably has it; try reading .env
+        load_dotenv(_ENV_FILE, override=True)
+        existing = os.getenv("ENCRYPTION_SECRET_KEY")
+        if existing:
+            return existing
+        raise RuntimeError(
+            "Could not generate ENCRYPTION_SECRET_KEY — check file permissions on "
+            f"{_ENV_FILE} and {lock_file}"
+        )
+
+    try:
+        key = Fernet.generate_key().decode()
+        set_key(_ENV_FILE, "ENCRYPTION_SECRET_KEY", key)
+        os.environ["ENCRYPTION_SECRET_KEY"] = key
+
+        print("\n⚡ [VoltKey] ENCRYPTION_SECRET_KEY was not set.")
+        print(f"   Generated a new Fernet key and saved it to:\n   {_ENV_FILE}")
+        print("   This key encrypts BYOK provider keys at rest — keep the .env file safe.\n")
+    finally:
+        os.unlink(lock_file)
 
     return key
 

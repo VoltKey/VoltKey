@@ -41,6 +41,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    // Sync user to public.users table (idempotent)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    try {
+      await fetch(`${apiUrl}/api/users/sync`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${data.session?.access_token}`,
+          "Content-Type": "application/json",
+        },
+      });
+    } catch {
+      // Non-fatal — the auth callback or next login will retry
+    }
+
     return response;
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Internal server error" }, { status: 500 });

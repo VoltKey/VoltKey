@@ -64,7 +64,13 @@ export default async function DashboardLayout({
             {user.email}
           </p>
           <form action="/auth/signout" method="post">
-            <SignOutButton />
+            <button
+              type="submit"
+              className="font-mono text-muted hover:text-primary transition-colors w-full text-left"
+              style={{ fontSize: "12px" }}
+            >
+              Sign out →
+            </button>
           </form>
         </div>
       </aside>
@@ -75,4 +81,4 @@ export default async function DashboardLayout({
   );
 }
 
-import { SignOutButton } from "@/components/SignOutButton";
+

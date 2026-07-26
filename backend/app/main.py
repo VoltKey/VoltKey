@@ -1,13 +1,14 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.api.v1 import analytics, chat, health, keys, provider_keys, users
 from app import db as _db_module
 from app.services.router import router_engine
+from app.core.ratelimit import InMemoryRateLimiter
 
 logger = logging.getLogger("voltkey.main")
 
@@ -16,17 +17,27 @@ logger = logging.getLogger("voltkey.main")
 async def lifespan(app: FastAPI):
     """Startup / shutdown hook — clean up connections on exit."""
     logger.info("⚡ VoltKey starting up")
-    engine = _db_module.database._get_engine()
-    async with engine.begin() as conn:
-        await conn.run_sync(_db_module.database.Base.metadata.create_all)
+
+    try:
+        engine = _db_module.database._get_engine()
+        async with engine.begin() as conn:
+            from app.db.models import Base
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables verified / created")
+    except Exception as exc:
+        logger.warning(f"Table creation skipped (non-fatal): {exc}")
+
     yield
+
     logger.info("VoltKey shutting down — closing connections")
     # Close httpx client pool
     await router_engine.client.aclose()
-    # Dispose SQLAlchemy async engine
+    # Dispose SQLAlchemy async engine (if created)
     if _db_module.database._engine is not None:
         await _db_module.database._engine.dispose()
 
+
+_rate_limiter = InMemoryRateLimiter(max_requests=60, window_seconds=60)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -36,7 +47,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-from fastapi import FastAPI, Request, Response
+# ── Rate limiting middleware ──────────────────────────────────────────────────
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    if request.url.path.startswith("/api/") or request.url.path.startswith("/v1/"):
+        client_ip = request.client.host if request.client else "unknown"
+        ok, retry_after = _rate_limiter.check(client_ip)
+        if not ok:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=429,
+                content={"detail": f"Rate limit exceeded. Retry after {retry_after}s."},
+                headers={"Retry-After": str(retry_after)},
+            )
+    return await call_next(request)
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
