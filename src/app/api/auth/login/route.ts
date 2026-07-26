@@ -23,8 +23,9 @@ export async function POST(request: Request) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-              response.cookies.set(name, value, options);
+              const opts = { ...options, maxAge: 30 * 24 * 60 * 60 };
+              cookieStore.set(name, value, opts);
+              response.cookies.set(name, value, opts);
             });
           },
         },

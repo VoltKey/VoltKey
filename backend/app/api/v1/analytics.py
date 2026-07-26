@@ -60,7 +60,7 @@ async def get_analytics(
     )
 
     if days:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
         q = q.where(RequestAnalytics.created_at >= cutoff)
     if provider:
         q = q.where(RequestAnalytics.provider_name.ilike(provider))
@@ -91,7 +91,7 @@ async def get_analytics_summary(
     db: AsyncSession = Depends(get_db),
 ):
     """Aggregate stats over the requested time window."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
 
     result = await db.execute(
         select(RequestAnalytics).where(

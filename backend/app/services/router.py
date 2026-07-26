@@ -148,7 +148,7 @@ class LLMRouter:
         user_id: str,
         db: Optional[AsyncSession],
     ) -> Dict[str, Any]:
-        """Fetches the user row and their plan limits."""
+        """Fetches the user row and their plan limits. Auto-creates user if missing."""
         if user_id == "usr_dev_default" or db is None:
             return {"user_id": user_id, "tier": "developer", "rate_limit_rpm": 600}
 
@@ -156,9 +156,21 @@ class LLMRouter:
         user = result.scalar_one_or_none()
 
         if not user:
-            raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+            logger.info(f"[Step 2] Auto-registering User record for user_id={user_id}")
+            user = User(
+                id=user_id,
+                email=f"user_{user_id[:8]}@voltkey.internal",
+                plan_name="developer",
+                rate_limit_rpm=60,
+            )
+            db.add(user)
+            try:
+                await db.commit()
+                await db.refresh(user)
+            except Exception as e:
+                await db.rollback()
+                logger.warning(f"Error auto-creating user {user_id}: {e}")
 
-        logger.info(f"[Step 2] {user.email} | {user.plan_name} | {user.rate_limit_rpm} RPM")
         return {
             "user_id": user.id,
             "email": user.email,
@@ -256,7 +268,7 @@ class LLMRouter:
                     "provider_id": "gemini",
                     "url": f"{settings.GEMINI_BASE_URL}/chat/completions",
                     "encrypted_key": api_key,
-                    "target_model": "gemini-1.5-flash" if is_alias else request_model,
+                    "target_model": "gemini-2.0-flash" if is_alias else request_model,
                 })
             elif p_name == "mistral":
                 chain.append({
@@ -274,6 +286,36 @@ class LLMRouter:
                     "encrypted_key": api_key,
                     "target_model": "meta-llama/Llama-3-70b-chat-hf" if is_alias else request_model,
                 })
+
+        if not chain:
+            # Fallback to any BYOK key configured by the user
+            for p_name, api_key in user_keys.items():
+                if not api_key:
+                    continue
+                if p_name == "gemini":
+                    chain.append({
+                        "name": "Gemini",
+                        "provider_id": "gemini",
+                        "url": f"{settings.GEMINI_BASE_URL}/chat/completions",
+                        "encrypted_key": api_key,
+                        "target_model": "gemini-2.0-flash",
+                    })
+                elif p_name == "groq":
+                    chain.append({
+                        "name": "Groq",
+                        "provider_id": "groq",
+                        "url": f"{settings.GROQ_BASE_URL}/chat/completions",
+                        "encrypted_key": api_key,
+                        "target_model": "llama-3.3-70b-versatile",
+                    })
+                elif p_name == "openai":
+                    chain.append({
+                        "name": "OpenAI",
+                        "provider_id": "openai",
+                        "url": f"{settings.OPENAI_BASE_URL}/chat/completions",
+                        "encrypted_key": api_key,
+                        "target_model": "gpt-4o-mini",
+                    })
 
         if not chain:
             chain.append({
@@ -341,7 +383,10 @@ class LLMRouter:
                 "Authorization": f"Bearer {decrypted_key}",
                 "Content-Type": "application/json",
             }
-            final_payload = payload
+            final_payload = dict(payload)
+            if provider_id == "gemini":
+                final_payload.pop("frequency_penalty", None)
+                final_payload.pop("presence_penalty", None)
 
         if stream and provider_id != "anthropic":
             return await self._stream_response(url, headers, final_payload, provider["name"])
@@ -507,7 +552,16 @@ class LLMRouter:
                 )
                 return result
 
-            except HTTPException:
+            except HTTPException as exc:
+                latency_ms = (time.time() - start_time) * 1000
+                await self.store_analytics(
+                    user_id=user_id,
+                    provider_name=provider["name"],
+                    model=request.model,
+                    latency_ms=latency_ms,
+                    status_code=exc.status_code,
+                    db=db,
+                )
                 raise
             except Exception as exc:
                 logger.warning(f"[Failover] {provider['name']} failed: {exc}")

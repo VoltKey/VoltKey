@@ -1,8 +1,28 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { HeroBackground } from "./HeroBackground";
 import { AnimateIn } from "./AnimateIn";
 
 export function Hero() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setIsLoggedIn(!!data.user);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   return (
     <section
       className="relative min-h-screen flex flex-col items-center justify-center text-center overflow-hidden"
@@ -21,33 +41,24 @@ export function Hero() {
         }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 max-w-content mx-auto px-6 py-24 flex flex-col items-center gap-8">
+      <div className="relative z-10 mx-auto w-full max-w-content px-6 flex flex-col items-center text-center">
         {/* Eyebrow */}
         <AnimateIn delay={0}>
-          <p
-            className="font-display uppercase tracking-widest text-volt"
-            style={{ fontSize: "12px", letterSpacing: "0.12em" }}
-          >
-            Route anything · Miss nothing
-          </p>
+          <p className="eyebrow text-volt mb-6">ROUTE ANYTHING · MISS NOTHING</p>
         </AnimateIn>
 
         {/* H1 */}
         <AnimateIn delay={60}>
           <h1
-            className="font-serif text-primary max-w-3xl mx-auto"
+            className="font-serif text-primary tracking-tight max-w-4xl mx-auto mb-6"
             style={{
-              fontSize: "clamp(40px, 5.5vw, 64px)",
-              lineHeight: "1.05",
-              letterSpacing: "-0.02em",
+              fontSize: "clamp(36px, 5.5vw, 64px)",
+              lineHeight: 1.05,
+              fontWeight: 400,
             }}
           >
             One key. Every model.{" "}
-            <em
-              className="not-italic"
-              style={{ fontStyle: "italic", color: "#EDEAE1" }}
-            >
+            <em className="font-serif-italic text-primary not-italic inline">
               Never
             </em>{" "}
             waiting on a limit.
@@ -57,8 +68,8 @@ export function Hero() {
         {/* Subhead */}
         <AnimateIn delay={120}>
           <p
-            className="font-mono text-muted max-w-xl mx-auto"
-            style={{ fontSize: "17px", lineHeight: "1.7" }}
+            className="font-mono text-muted max-w-2xl mx-auto mb-10"
+            style={{ fontSize: "17px", lineHeight: 1.7 }}
           >
             Free-tier and your own provider keys, routed through one endpoint
             that fails over before you notice.
@@ -69,10 +80,10 @@ export function Hero() {
         <AnimateIn delay={180}>
           <div className="flex flex-wrap items-center justify-center gap-4 mt-2">
             <Link
-              href="/signup"
-              className="btn-volt font-mono font-bold px-6 py-3 text-sm inline-flex items-center"
+              href={isLoggedIn ? "/dashboard" : "/auth/signup"}
+              className="btn-volt font-mono font-bold px-6 py-3 text-sm inline-flex items-center gap-1.5"
             >
-              Get API key
+              {isLoggedIn ? "Go to Dashboard →" : "Get API key"}
             </Link>
             <Link
               href="/models"

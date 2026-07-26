@@ -26,18 +26,20 @@ _session_factory = None
 def _get_engine():
     global _engine
     if _engine is None:
-        if not settings.DATABASE_URL:
-            raise RuntimeError(
-                "DATABASE_URL is not set. Add it to backend/.env "
-                "(see backend/.env.example for the format)."
-            )
+        db_url = settings.DATABASE_URL
+        if not db_url:
+            logger.info("DATABASE_URL is not set — falling back to local SQLite dev database (sqlite+aiosqlite:///./voltkey.db)")
+            db_url = "sqlite+aiosqlite:///./voltkey.db"
+
+        connect_args = {}
+        if db_url.startswith("postgresql"):
+            connect_args = {"ssl": "require"}
+
         _engine = create_async_engine(
-            settings.DATABASE_URL,
+            db_url,
             echo=settings.DB_ECHO,
             pool_pre_ping=True,
-            pool_size=5,
-            max_overflow=10,
-            connect_args={"ssl": "require"},
+            connect_args=connect_args,
         )
     return _engine
 

@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
 from app.db.database import get_db
-from app.db.models import ApiKey
+from app.db.models import ApiKey, User
 
 router = APIRouter()
 
@@ -81,6 +81,12 @@ async def create_api_key(
     """
     raw_key = "vk_live_" + secrets.token_hex(16)  # vk_live_ + 32 hex chars
     key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+
+    # Ensure user record exists
+    user_check = await db.execute(select(User).where(User.id == user_id))
+    if not user_check.scalar_one_or_none():
+        db.add(User(id=user_id, email=f"user_{user_id[:8]}@voltkey.internal", plan_name="developer", rate_limit_rpm=60))
+        await db.flush()
 
     new_key = ApiKey(
         user_id=user_id,

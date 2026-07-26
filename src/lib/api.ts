@@ -7,17 +7,36 @@ import { createClient } from "@/lib/supabase/client";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 async function getAuthHeaders(): Promise<HeadersInit> {
-  const supabase = createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  let token: string | undefined;
 
-  if (!session?.access_token) {
+  try {
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    token = session?.access_token;
+  } catch {
+    // Ignore client getSession error
+  }
+
+  if (!token) {
+    try {
+      const res = await fetch("/api/auth/session");
+      if (res.ok) {
+        const data = await res.json();
+        token = data.access_token;
+      }
+    } catch {
+      // Ignore fetch error
+    }
+  }
+
+  if (!token) {
     throw new Error("No active session — please sign in.");
   }
 
   return {
-    Authorization: `Bearer ${session.access_token}`,
+    Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
 }
@@ -28,11 +47,19 @@ async function request<T>(
   body?: unknown
 ): Promise<T> {
   const headers = await getAuthHeaders();
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res: Response;
+
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (err: any) {
+    throw new Error(
+      err?.message || `Failed to connect to VoltKey backend at ${API_URL}`
+    );
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));

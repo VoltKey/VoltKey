@@ -75,32 +75,4 @@ export default async function DashboardLayout({
   );
 }
 
-// Sign-out is a server action
-function SignOutButton() {
-  return (
-    <SignOutForm />
-  );
-}
-
-function SignOutForm() {
-  async function signOut() {
-    "use server";
-    const { createClient } = await import("@/lib/supabase/server");
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-    const { redirect } = await import("next/navigation");
-    redirect("/auth/login");
-  }
-
-  return (
-    <form action={signOut}>
-      <button
-        type="submit"
-        className="font-mono text-muted hover:text-primary transition-colors w-full text-left"
-        style={{ fontSize: "12px" }}
-      >
-        Sign out →
-      </button>
-    </form>
-  );
-}
+import { SignOutButton } from "@/components/SignOutButton";

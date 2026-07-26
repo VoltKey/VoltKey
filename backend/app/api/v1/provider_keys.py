@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.auth import get_current_user_id
 from app.db.database import get_db
-from app.db.models import UserProviderKey
+from app.db.models import User, UserProviderKey
 
 router = APIRouter()
 
@@ -79,6 +79,12 @@ async def upsert_provider_key(
             status_code=400,
             detail=f"Unsupported provider '{provider}'. Supported: {sorted(SUPPORTED_PROVIDERS)}",
         )
+
+    # Ensure user record exists
+    user_check = await db.execute(select(User).where(User.id == user_id))
+    if not user_check.scalar_one_or_none():
+        db.add(User(id=user_id, email=f"user_{user_id[:8]}@voltkey.internal", plan_name="developer", rate_limit_rpm=60))
+        await db.flush()
 
     encrypted = _fernet().encrypt(body.api_key.encode()).decode()
 

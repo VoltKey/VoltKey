@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { SignOutButton } from "./SignOutButton";
 import { BoltMark } from "./BoltMark";
 
 const NAV_LINKS = [
@@ -13,11 +15,27 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setIsLoggedIn(!!data.user);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -70,19 +88,34 @@ export function Navbar() {
 
         {/* ── Right CTAs ── */}
         <div className="flex items-center gap-4 shrink-0">
-          <Link
-            href="/login"
-            className="font-mono text-sm text-muted hover:text-primary transition-colors duration-200"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="btn-volt font-mono text-sm font-bold px-4 py-2 inline-flex items-center"
-            style={{ fontSize: "13px" }}
-          >
-            Get API key
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <SignOutButton className="font-mono text-sm text-muted hover:text-primary transition-colors duration-200" />
+              <Link
+                href="/dashboard"
+                className="btn-volt font-mono text-sm font-bold px-4 py-2 inline-flex items-center gap-1.5"
+                style={{ fontSize: "13px" }}
+              >
+                Dashboard →
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="font-mono text-sm text-muted hover:text-primary transition-colors duration-200"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="btn-volt font-mono text-sm font-bold px-4 py-2 inline-flex items-center"
+                style={{ fontSize: "13px" }}
+              >
+                Get API key
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

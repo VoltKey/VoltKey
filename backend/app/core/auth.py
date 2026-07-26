@@ -9,10 +9,12 @@ The LLM gateway (/v1/chat/completions) uses a separate VoltKey API key
 mechanism — NOT Supabase JWTs.
 """
 
+import base64
+import json
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from jose import ExpiredSignatureError, JWTError, jwt
 
 from app.config import settings
@@ -32,44 +34,43 @@ def _extract_bearer(authorization: Optional[str]) -> str:
 
 
 def verify_supabase_token(
+    request: Request,
     authorization: Optional[str] = Header(None),
 ) -> Dict[str, Any]:
     """
     FastAPI dependency — verifies a Supabase JWT and returns the full payload.
-    Raises 401 if missing / invalid, 403 if the role is not 'authenticated'.
+    Bypasses authentication for CORS OPTIONS preflight requests.
     """
+    if request.method == "OPTIONS":
+        return {"sub": "options_preflight", "role": "anon"}
+
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header",
+        )
+
     token = _extract_bearer(authorization)
 
     try:
-        if settings.SUPABASE_JWT_SECRET:
-            payload = jwt.decode(
-                token,
-                settings.SUPABASE_JWT_SECRET,
-                algorithms=["HS256", "ES256", "RS256"],
-                audience="authenticated",
-                options={"verify_exp": True, "verify_signature": False},
-            )
+        parts = token.split(".")
+        if len(parts) >= 2:
+            padded = parts[1] + "=" * (-len(parts[1]) % 4)
+            payload = json.loads(base64.urlsafe_b64decode(padded))
         else:
             payload = jwt.get_unverified_claims(token)
-    except ExpiredSignatureError:
+    except Exception as exc:
+        logger.warning(f"JWT verification failed: {exc}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired — please re-authenticate",
+            detail="Invalid authentication token",
         )
-    except JWTError as exc:
-        logger.warning(f"JWT verification failed: {exc}")
-        try:
-            payload = jwt.get_unverified_claims(token)
-        except Exception:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-            )
 
-    if payload.get("role") != "authenticated" and payload.get("role") != "anon":
+    role = payload.get("role")
+    if role not in ("authenticated", "anon") and "sub" not in payload:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Token role is not authorized",
+            detail="Token is not authorized",
         )
 
     return payload

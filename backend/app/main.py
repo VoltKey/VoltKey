@@ -16,14 +16,16 @@ logger = logging.getLogger("voltkey.main")
 async def lifespan(app: FastAPI):
     """Startup / shutdown hook — clean up connections on exit."""
     logger.info("⚡ VoltKey starting up")
+    engine = _db_module.database._get_engine()
+    async with engine.begin() as conn:
+        await conn.run_sync(_db_module.database.Base.metadata.create_all)
     yield
     logger.info("VoltKey shutting down — closing connections")
     # Close httpx client pool
     await router_engine.client.aclose()
-    # Dispose SQLAlchemy async engine (if it was ever created)
-    engine = _db_module.database._engine
-    if engine is not None:
-        await engine.dispose()
+    # Dispose SQLAlchemy async engine
+    if _db_module.database._engine is not None:
+        await _db_module.database._engine.dispose()
 
 
 app = FastAPI(
@@ -34,9 +36,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from fastapi import FastAPI, Request, Response
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
-# NOTE: allow_origins=["*"] + allow_credentials=True is rejected by every
-# browser. We use explicit origins from config instead.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -44,6 +46,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def handle_cors_preflight(request: Request, call_next):
+    if request.method == "OPTIONS":
+        origin = request.headers.get("origin", "*")
+        return Response(
+            content="OK",
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+                "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
+                "Access-Control-Allow-Credentials": "true",
+            },
+        )
+    return await call_next(request)
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 # LLM gateway — authenticated with VoltKey API keys (Bearer vk_live_xxx)

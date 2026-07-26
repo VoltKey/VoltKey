@@ -77,7 +77,7 @@ export function CTABand() {
 
         <AnimateIn delay={180}>
           <Link
-            href="/signup"
+            href="/auth/signup"
             className="btn-volt font-mono font-bold px-8 py-4 text-sm inline-flex items-center"
             style={{ fontSize: "14px" }}
           >

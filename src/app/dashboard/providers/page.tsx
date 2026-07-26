@@ -28,7 +28,7 @@ export default function ProvidersPage() {
         records.forEach((r) => (map[r.provider_name] = r));
         setStored(map);
       })
-      .catch(console.error)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load provider keys"))
       .finally(() => setLoading(false));
   }, []);
 

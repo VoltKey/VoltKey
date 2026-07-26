@@ -30,7 +30,11 @@ export default function KeysPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    keysApi.list().then(setKeys).catch(console.error).finally(() => setLoading(false));
+    keysApi
+      .list()
+      .then(setKeys)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load keys"))
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleCreate(e: React.FormEvent) {
@@ -76,6 +80,12 @@ export default function KeysPage() {
           + New key
         </button>
       </div>
+
+      {error && !showForm && (
+        <div className="p-4 font-mono text-sm" style={{ background: "rgba(255,90,90,0.1)", border: "1px solid rgba(255,90,90,0.3)", color: "#FF5A5A", borderRadius: "2px" }}>
+          ⚠ {error}
+        </div>
+      )}
 
       {/* Create form */}
       {showForm && (

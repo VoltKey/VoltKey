@@ -4,13 +4,9 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
-    }
-
     const cookieStore = await cookies();
+    let response = NextResponse.json({ success: true });
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -21,27 +17,16 @@ export async function POST(request: Request) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              const opts = { ...options, maxAge: 30 * 24 * 60 * 60 };
-              cookieStore.set(name, value, opts);
+              cookieStore.set(name, value, options);
+              response.cookies.set(name, value, options);
             });
           },
         },
       }
     );
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${new URL(request.url).origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true, user: data.user });
+    await supabase.auth.signOut();
+    return response;
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Internal server error" }, { status: 500 });
   }
