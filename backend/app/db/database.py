@@ -27,20 +27,28 @@ def _get_engine():
     global _engine
     if _engine is None:
         db_url = settings.DATABASE_URL
-        if not db_url:
-            logger.info("DATABASE_URL is not set — falling back to local SQLite dev database (sqlite+aiosqlite:///./voltkey.db)")
+        if not db_url or "xxxx" in db_url or "YOUR-PASSWORD" in db_url:
+            logger.info("DATABASE_URL is placeholder/empty — falling back to local SQLite database (sqlite+aiosqlite:///./voltkey.db)")
             db_url = "sqlite+aiosqlite:///./voltkey.db"
 
         connect_args = {}
         if db_url.startswith("postgresql"):
             connect_args = {"ssl": "require"}
 
-        _engine = create_async_engine(
-            db_url,
-            echo=settings.DB_ECHO,
-            pool_pre_ping=True,
-            connect_args=connect_args,
-        )
+        try:
+            _engine = create_async_engine(
+                db_url,
+                echo=settings.DB_ECHO,
+                pool_pre_ping=True,
+                connect_args=connect_args,
+            )
+        except Exception as exc:
+            logger.warning(f"Failed to create primary DB engine ({exc}) — falling back to local SQLite")
+            _engine = create_async_engine(
+                "sqlite+aiosqlite:///./voltkey.db",
+                echo=False,
+                pool_pre_ping=True,
+            )
     return _engine
 
 

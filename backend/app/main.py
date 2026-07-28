@@ -63,18 +63,10 @@ async def rate_limit_middleware(request: Request, call_next):
     return await call_next(request)
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 @app.middleware("http")
-async def handle_cors_preflight(request: Request, call_next):
+async def cors_dynamic_middleware(request: Request, call_next):
+    origin = request.headers.get("origin", "*")
     if request.method == "OPTIONS":
-        origin = request.headers.get("origin", "*")
         return Response(
             content="OK",
             status_code=200,
@@ -85,7 +77,28 @@ async def handle_cors_preflight(request: Request, call_next):
                 "Access-Control-Allow-Credentials": "true",
             },
         )
-    return await call_next(request)
+
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        logger.error(f"Unhandled exception: {exc}")
+        from fastapi.responses import JSONResponse
+        response = JSONResponse(status_code=500, content={"detail": str(exc)})
+
+    if origin and origin != "*":
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    return response
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 # LLM gateway — authenticated with VoltKey API keys (Bearer vk_live_xxx)
