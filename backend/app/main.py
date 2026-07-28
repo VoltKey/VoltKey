@@ -69,75 +69,49 @@ async def rate_limit_middleware(request: Request, call_next):
             )
     return await call_next(request)
 
-# ── Global CORS & Preflight Middleware ────────────────────────────────────────
-@app.middleware("http")
-async def global_cors_middleware(request: Request, call_next):
-    origin = request.headers.get("origin", "*")
-
-    # Handle CORS OPTIONS Preflight
-    if request.method == "OPTIONS":
-        return Response(
-            content="OK",
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": origin,
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-                "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, X-Requested-With",
-            },
-        )
-
-    try:
-        response = await call_next(request)
-    except Exception as exc:
-        logger.error(f"Unhandled server error: {exc}", exc_info=True)
-        response = JSONResponse(status_code=500, content={"detail": str(exc)})
-
-    # Enforce CORS headers on ALL outgoing responses
-    response.headers["Access-Control-Allow-Origin"] = origin
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept, X-Requested-With"
-
-    return response
-
+# ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 
 @app.exception_handler(HTTPException)
 async def http_exception_cors_handler(request: Request, exc: HTTPException):
-    origin = request.headers.get("origin", "*")
+    origin = request.headers.get("origin")
+    headers = {
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+    }
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        },
+        headers=headers,
     )
 
 @app.exception_handler(Exception)
 async def general_exception_cors_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error: {exc}", exc_info=True)
-    origin = request.headers.get("origin", "*")
+    origin = request.headers.get("origin")
+    headers = {
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+    }
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
         content={"detail": str(exc)},
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        },
+        headers=headers,
     )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
