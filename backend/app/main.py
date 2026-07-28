@@ -63,38 +63,9 @@ async def rate_limit_middleware(request: Request, call_next):
     return await call_next(request)
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-@app.middleware("http")
-async def cors_dynamic_middleware(request: Request, call_next):
-    origin = request.headers.get("origin", "*")
-    if request.method == "OPTIONS":
-        return Response(
-            content="OK",
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": origin,
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-                "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
-                "Access-Control-Allow-Credentials": "true",
-            },
-        )
-
-    try:
-        response = await call_next(request)
-    except Exception as exc:
-        logger.error(f"Unhandled exception: {exc}")
-        from fastapi.responses import JSONResponse
-        response = JSONResponse(status_code=500, content={"detail": str(exc)})
-
-    if origin and origin != "*":
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    return response
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+|https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
