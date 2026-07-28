@@ -44,7 +44,8 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 async function request<T>(
   method: string,
   path: string,
-  body?: unknown
+  body?: unknown,
+  retries = 2
 ): Promise<T> {
   const headers = await getAuthHeaders();
   let res: Response;
@@ -56,12 +57,20 @@ async function request<T>(
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (err: any) {
+    if (retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return request<T>(method, path, body, retries - 1);
+    }
     throw new Error(
       err?.message || `Failed to connect to VoltKey backend at ${API_URL}`
     );
   }
 
   if (!res.ok) {
+    if (res.status >= 500 && retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return request<T>(method, path, body, retries - 1);
+    }
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail ?? `API error ${res.status}`);
   }
