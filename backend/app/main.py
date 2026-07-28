@@ -55,10 +55,17 @@ async def rate_limit_middleware(request: Request, call_next):
         ok, retry_after = _rate_limiter.check(client_ip)
         if not ok:
             from fastapi.responses import JSONResponse
+            origin = request.headers.get("origin", "*")
             return JSONResponse(
                 status_code=429,
                 content={"detail": f"Rate limit exceeded. Retry after {retry_after}s."},
-                headers={"Retry-After": str(retry_after)},
+                headers={
+                    "Retry-After": str(retry_after),
+                    "Access-Control-Allow-Origin": origin,
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Headers": "*",
+                },
             )
     return await call_next(request)
 
