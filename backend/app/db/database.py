@@ -33,7 +33,11 @@ def _get_engine():
 
         connect_args = {}
         if db_url.startswith("postgresql"):
-            connect_args = {"ssl": "require"}
+            connect_args = {
+                "ssl": "require",
+                "statement_cache_size": 0,
+                "prepared_statement_cache_size": 0,
+            }
 
         try:
             _engine = create_async_engine(
