@@ -21,11 +21,11 @@ function CodeLine({
 }
 
 function Kw({ children }: { children: React.ReactNode }) {
-  return <span style={{ color: "#E8A33D" }}>{children}</span>;
+  return <span style={{ color: "#F07A30" }}>{children}</span>;
 }
 
 function Str({ children }: { children: React.ReactNode }) {
-  return <span style={{ color: "#E8A33D" }}>{children}</span>;
+  return <span style={{ color: "#F07A30" }}>{children}</span>;
 }
 
 function Cm({ children }: { children: React.ReactNode }) {
@@ -43,6 +43,7 @@ function Dim({ children }: { children: React.ReactNode }) {
 export function Integration() {
   return (
     <section
+      id="integration"
       className="border-t"
       style={{ borderColor: "#28282D" }}
       aria-labelledby="integration-heading"
@@ -94,7 +95,7 @@ export function Integration() {
                   "Streaming, function calling, vision — all preserved",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <span style={{ color: "#E8A33D", marginTop: "2px" }}>
+                    <span style={{ color: "#F07A30", marginTop: "2px" }}>
                       ·
                     </span>
                     {item}
@@ -124,7 +125,7 @@ export function Integration() {
                     className="font-mono text-muted px-3 py-1"
                     style={{
                       fontSize: "12px",
-                      borderBottom: "1px solid #E8A33D",
+                      borderBottom: "1px solid #F07A30",
                       color: "#EDEAE1",
                     }}
                   >
@@ -202,12 +203,12 @@ export function Integration() {
               <div
                 className="mt-6 p-4 flex items-start gap-3"
                 style={{
-                  background: "rgba(232,163,61,0.06)",
-                  border: "1px solid rgba(232,163,61,0.2)",
+                  background: "rgba(240,122,48,0.06)",
+                  border: "1px solid rgba(240,122,48,0.2)",
                   borderRadius: "2px",
                 }}
               >
-                <span style={{ color: "#E8A33D", fontSize: "13px" }}>→</span>
+                <span style={{ color: "#F07A30", fontSize: "13px" }}>→</span>
                 <p className="font-mono text-muted" style={{ fontSize: "13px", lineHeight: "1.6" }}>
                   That&apos;s it. The rest of your code — completions, streaming,
                   function calls, embeddings — works unchanged.

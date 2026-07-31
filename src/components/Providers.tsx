@@ -42,6 +42,7 @@ const PROVIDERS = [
 export function Providers() {
   return (
     <section
+      id="providers"
       className="border-t"
       style={{ borderColor: "#28282D" }}
       aria-labelledby="providers-heading"

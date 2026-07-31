@@ -90,28 +90,28 @@ export function RoutingDiagram() {
             <path
               key="user-spark"
               d={USER_TO_VK_PATH}
-              stroke="#E8A33D"
+              stroke="#F07A30"
               strokeWidth="1.5"
               fill="none"
               pathLength="1000"
               strokeDasharray="120 880"
               style={{
                 animation: `routing-spark ${CYCLE_MS * 0.6}ms linear infinite`,
-                filter: "drop-shadow(0 0 4px rgba(232,163,61,0.7))",
+                filter: "drop-shadow(0 0 4px rgba(240,122,48,0.7))",
               }}
             />
             {/* Active provider spark */}
             <path
               key={`provider-spark-${active}`}
               d={PROVIDER_PATHS[active]}
-              stroke="#E8A33D"
+              stroke="#F07A30"
               strokeWidth="1.5"
               fill="none"
               pathLength="1000"
               strokeDasharray="100 900"
               style={{
                 animation: `routing-spark ${CYCLE_MS * 0.7}ms linear forwards`,
-                filter: "drop-shadow(0 0 4px rgba(232,163,61,0.7))",
+                filter: "drop-shadow(0 0 4px rgba(240,122,48,0.7))",
                 animationDelay: `${CYCLE_MS * 0.25}ms`,
               }}
             />
@@ -154,7 +154,7 @@ export function RoutingDiagram() {
           cy="192"
           r="42"
           fill="#131316"
-          stroke={rateLimited !== null ? "#28282D" : "rgba(232,163,61,0.45)"}
+          stroke={rateLimited !== null ? "#28282D" : "rgba(240,122,48,0.45)"}
           strokeWidth="1.5"
           style={{ transition: "stroke 400ms ease" }}
         />
@@ -163,7 +163,7 @@ export function RoutingDiagram() {
           x="265"
           y="182"
           textAnchor="middle"
-          fill="#E8A33D"
+          fill="#F07A30"
           fontSize="11"
           fontFamily="var(--font-stick-no-bills), sans-serif"
           fontWeight="600"
@@ -213,7 +213,7 @@ export function RoutingDiagram() {
                   isRateLimited
                     ? "rgba(255,80,80,0.5)"
                     : isActive
-                    ? "rgba(232,163,61,0.45)"
+                    ? "rgba(240,122,48,0.45)"
                     : "#28282D"
                 }
                 strokeWidth="1"
@@ -254,8 +254,8 @@ export function RoutingDiagram() {
                   cx="552"
                   cy={p.y - 15}
                   r="3"
-                  fill="rgba(232,163,61,0.9)"
-                  style={{ filter: "drop-shadow(0 0 3px rgba(232,163,61,0.8))" }}
+                  fill="rgba(240,122,48,0.9)"
+                  style={{ filter: "drop-shadow(0 0 3px rgba(240,122,48,0.8))" }}
                 />
               )}
             </g>

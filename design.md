@@ -1,10 +1,12 @@
-# VoltKey — Homepage Design Specification
+# VoltKey — Homepage Design Specification (v2)
 
 ## 0. Brief summary
 
 VoltKey is a unified LLM gateway: one key, routed across free and paid models, built for developers who are learning to ship AI products (not enterprise buyers). The homepage's single job: make "one key, every model, routed intelligently" felt in five seconds, then prove it with real technical credibility (code, providers, mechanics) before asking for the sign-up.
 
 Grounding subject: the logo itself — a bolt inside a broken/interrupted ring. That break in the ring is not decorative, it's the thesis. Current doesn't flow in a closed loop, it gets redirected through the gap when the circuit is interrupted. That's routing. That's the product. Every design decision below traces back to this one image.
+
+**v2 direction**: more minimal, more modern. Fewer columns, more whitespace, bolder accent (shifted from amber-gold to warm orange), lightning bolt effects layered alongside the existing circuit-trace motif. Navigation anchors to page sections instead of separate routes. Simplified footer. New Mission and Security sections.
 
 ---
 
@@ -19,7 +21,7 @@ Grounding subject: the logo itself — a bolt inside a broken/interrupted ring. 
 | `--border-hairline` | `#28282D` | Default 1px edges. Sharp, not soft. |
 | `--text-primary` | `#EDEAE1` | Off-white, warm-tinted (not `#FFFFFF` — pure white reads cheap against near-black). |
 | `--text-muted` | `#87868C` | Cool gray — secondary text, captions, the "Key" half of the wordmark. |
-| `--volt` | `#E8A33D` | The amber-gold from the logo's "Volt." The one accent. Used sparingly and always with intent (CTA, active state, the spark itself) — never as a background wash. |
+| `--volt` | `#F07A30` | Warm orange — the "volt" accent. Shifted from the original amber-gold to a more energetic, orange tone. Used sparingly and always with intent (CTA, active state, lightning effects) — never as a background wash. |
 
 Two derived utility tones (not new hues, just opacity/tint steps of the above, so the palette stays at 6 real decisions):
 - `--volt-dim` — `--volt` at 14% opacity, for subtle glows and hover backgrounds
@@ -51,190 +53,192 @@ Sharp, edge-cutting, minimal radius:
 - Borders are 1px hairlines (`--border-hairline`), not shadows, doing the work of separating sections
 - Grid: 12-column, gutters tight (24px), content max-width 1200px, generous outer margin so the sharp edges don't feel cramped against the viewport
 - No card ever gets a drop shadow. Depth comes from `--bg-surface` vs `--bg-void` contrast and hairline borders only
+- **v2 emphasis**: more negative space between sections. Let the page breathe.
 
 ASCII wireframe, full page:
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  [glass nav — fixed, blurred]                     │
+│  [glass nav — fixed, blurred, anchor links]       │
 ├──────────────────────────────────────────────────┤
 │                                                    │
 │         HERO — headline, subhead, 2 CTAs          │
-│         circuit-trace animation behind text        │
+│         lightning bolt + circuit-trace behind text  │
 │                                                    │
 ├──────────────────────────────────────────────────┤
+│  MISSION — 3-card grid: purpose, values, promise  │
+├──────────────────────────────────────────────────┤
 │  THE BREAK IN THE RING — how routing works        │
-│  [asymmetric: left copy 40% | right live diagram 60%] │
+│  [asymmetric: left copy 40% | right live diagram] │
 ├──────────────────────────────────────────────────┤
-│  FEATURES — bento grid (1 large + 4 small, uneven)│
+│  FEATURES — bento grid (1 large + 4 small)        │
 ├──────────────────────────────────────────────────┤
-│  PROVIDERS — logo rail, marquee or static grid    │
+│  PROVIDERS — logo rail, static grid               │
 ├──────────────────────────────────────────────────┤
 │  INTEGRATION — code block, "swap one line" moment │
 ├──────────────────────────────────────────────────┤
-│  LIVE COUNTER — requests routed (ticking, honest) │
+│  SECURITY — encryption, key isolation, compliance │
 ├──────────────────────────────────────────────────┤
 │  CTA BAND — get your key                          │
 ├──────────────────────────────────────────────────┤
-│  FOOTER — about / company / contact columns       │
+│  FOOTER — simplified: About + Connect, 2 columns  │
 ├──────────────────────────────────────────────────┤
 │         V O L T K E Y  (giant, cropped, 6% opacity)│
 └──────────────────────────────────────────────────┘
 ```
 
-### 1.4 Signature element
+### 1.4 Signature elements
 
-**The interrupted circuit.** A thin animated trace (1px, `--volt` at full opacity with a soft `--volt-dim` glow trail) that runs along hairline borders — nav underside, card edges, the divider lines between sections — and at the exact point where the logo's ring has its gap, the trace visibly jumps the gap and re-enters at an angle, rather than completing the circle. This one motion idea is reused everywhere current would visually travel: hero background, hover states on cards, the "how it works" diagram, even the loading state on the CTA button. It's the same gesture as the logo, animated, and it's a literal enactment of what the product does — current forced to reroute rather than complete its expected loop.
+**The interrupted circuit.** A thin animated trace (1px, `--volt` at full opacity with a soft `--volt-dim` glow trail) that runs along hairline borders — nav underside, card edges, the divider lines between sections — and at the exact point where the logo's ring has its gap, the trace visibly jumps the gap and re-enters at an angle. This one motion idea is reused everywhere current would visually travel: hero background, hover states on cards, the "how it works" diagram, even the loading state on the CTA button.
 
-This is the one place the design spends its boldness. Everything else stays quiet and disciplined around it.
+**The lightning bolt.** New in v2. A stylized bolt SVG that strikes once on page load in the hero (dramatic 300ms flash with glow bloom), then settles into a subtle ambient flicker. The bolt appears as a decorative accent in section eyebrows and nav hover states. It reinforces the "voltage/energy" brand alongside the circuit-trace — the bolt is the energy, the trace is the pathway it travels.
 
 ---
 
-## 2. Navbar — glassmorphism
+## 2. Navbar — glassmorphism + section anchors
 
 - Fixed, full-width, `backdrop-filter: blur(16px)`, background `rgba(10,10,11,0.55)`, bottom border `1px solid --border-hairline`
-- This is the **only** glass surface on the page — glassmorphism is reserved entirely for the nav, so it reads as a deliberate frame rather than a texture repeated everywhere
+- This is the **only** glass surface on the page
 - Left: bolt mark (24px) + "VoltKey" in Stick No Bills, `--text-primary`
-- Center: `Docs` · `Models` · `Pricing` · `Changelog` — Space Mono, `--text-muted`, hover shifts to `--text-primary` with the circuit-trace briefly sparking under the hovered item only
-- Right: `Log in` (ghost, text-only) and `Get API key` (filled `--volt` background, `--bg-void` text, radius 2px, sharp corners — the one filled-amber surface in the nav)
-- Radius exception: the navbar's own outer container may use a very slight 8px radius if it's inset from the viewport edge (floating-pill style, à la Linear); if it's full-bleed edge-to-edge instead, radius is 0. Pick one — don't do both.
+- Center: `How It Works` · `Features` · `Integration` · `Security` — Space Mono, `--text-muted`, hover shifts to `--text-primary` with a small lightning bolt icon appearing
+  - These are anchor links scrolling to `#how-it-works`, `#features`, `#integration`, `#security`
+  - Smooth scroll behavior via `scroll-behavior: smooth` and JS `scrollIntoView`
+- Right: `Log in` (ghost, text-only) and `Get API key` (filled `--volt` background)
+- Mobile: hamburger menu that slides open with the same anchor links
+- Auth links remain route-based (`/auth/login`, `/auth/signup`, `/dashboard`)
 
 ---
 
 ## 3. Hero
 
-- Eyebrow (Stick No Bills, small, `--volt`): `ROUTE ANYTHING · MISS NOTHING`
-- H1 (Libre Baskerville, 64px): "One key. Every model. **Never** waiting on a limit." — the single italicized word is "Never," not a repeated tic
-- Subhead (Space Mono, `--text-muted`, 18px): one sentence, plain register — "Free-tier and your own provider keys, routed through one endpoint that fails over before you notice."
-- Two CTAs, side by side, unequal visual weight:
-  - Primary: `Get API key` — filled `--volt`, sharp corners, subtle glow on hover (the circuit trace runs along its border loop on hover, jumping the same gap as the logo)
-  - Secondary: `Explore models →` — ghost button, hairline border only, arrow shifts right 2px on hover
-- Background: `--bg-void`, with the circuit-trace animation running faint and slow behind the headline — thin traced lines suggesting a PCB layout, mostly still, with one trace actively "live" (animated) at a time so it reads as ambient rather than busy
-- No hero image, no product screenshot mockup up front — the circuit trace *is* the hero visual, not a placeholder for one
+- Eyebrow (shadcn Badge, variant outline, `--volt` border): `ROUTE ANYTHING · MISS NOTHING`
+- H1 (Libre Baskerville, 64px): "One key. Every model. **Never** waiting on a limit."
+- Subhead (Space Mono, `--text-muted`, 18px): one sentence, plain
+- Two CTAs, side by side
+- Background: PCB circuit-trace (existing), plus a central lightning bolt SVG that strikes on load
+- Lightning bolt: ~200px tall, centered behind the headline, strikes once (300ms) then holds at 8% opacity with subtle glow
 
 ---
 
-## 4. Section: "The break in the ring" (how it works)
+## 4. Section: Mission (NEW)
 
-Avoid the 3-card generic layout entirely here — this is the section most tempted toward it, so it's the one to be most deliberate about.
-
-Layout: asymmetric split, 40/60.
-- **Left (40%)**: short copy block explaining the mechanic in plain terms — one paragraph, Space Mono, no bullet list. E.g.: "A request comes in on your key. VoltKey checks which provider is fastest and healthy right now, sends it there, and if that provider rate-limits or times out mid-request, reroutes before you'd notice — same key, same code, no retry logic on your end."
-- **Right (60%)**: a live, looping SVG/canvas diagram — nodes for 3-4 provider logos (Groq, Gemini, OpenAI, Anthropic) connected by traces to a central "VoltKey" node, with the animated spark traveling from user → VoltKey node → whichever provider is "active" in the loop, occasionally showing a trace go dim (rate-limited) and the spark visibly rerouting to the next node. This is functional storytelling, not decoration — it shows the product's actual mechanic.
-
-No numbered steps (01/02/03) — there's no sequence here, it's a live decision each request, and numbering it would misrepresent that as a fixed pipeline.
-
----
-
-## 5. Section: Features — bento grid, not a 3-card grid
-
-Explicitly break the uniform-card pattern. Grid of 5 items, uneven sizes:
-
-```
-┌───────────────────────┬───────────┐
-│                       │  BYOK     │
-│   AUTO FAILOVER       │  bring    │
-│   (large, 2x1)        │  your own │
-│                       │  keys     │
-├───────────┬───────────┼───────────┤
-│  ANALYTICS│  STREAMING│ OPENAI-   │
-│  cost/lat │  token by │ COMPATIBLE│
-│  by model │  token    │ endpoint  │
-└───────────┴───────────┴───────────┘
-```
-
-- Large tile gets a small live visual (a sparkline of latency, or the circuit-trace in miniature); small tiles are text-only — title (Libre Baskerville, 20px) + one line of Space Mono body, no icon set that could read as generic (avoid a uniform icon-in-circle treatment across all five; if icons are used at all, vary their treatment or skip them entirely in favor of the type doing the work)
-- Hairline borders between tiles only — no individual card shadows or backgrounds distinct from `--bg-surface`
+- `id="mission"`, eyebrow: `OUR MISSION`
+- H2: "Built for builders. Not for billing departments."
+- Brief paragraph about VoltKey's purpose
+- Three shadcn Card components in a row:
+  1. **Developer-First**: "One API key, zero complexity. We build for developers shipping real products."
+  2. **Open Access**: "Route across free tiers and your own keys. The best model for each request, not the most expensive."
+  3. **Intelligent Routing**: "Automatic failover, latency-aware selection. Your requests always find the fastest path."
+- Cards use `--bg-surface` background, hairline borders, no shadows
 
 ---
 
-## 6. Section: Providers
+## 5. Section: "The break in the ring" (how it works)
 
-- A static row (not an auto-scrolling marquee — those read as filler) of provider wordmarks/logos in grayscale, `--text-muted`, brightening to full color only on hover
-- Small label above, Stick No Bills eyebrow: `ROUTES ACROSS`
-- Deliberately not a "trusted by" framing (VoltKey doesn't need social proof language here) — it's a capability list, framed plainly
+Same as v1 with `id="how-it-works"` added, updated colors.
 
 ---
 
-## 7. Section: Integration — the code moment
+## 6. Section: Features — bento grid
 
-- Dark code block (slightly darker than `--bg-surface`, `#0D0D0F`), Space Mono, syntax highlighting limited to `--volt` for keywords/strings and `--text-muted` for comments — no rainbow syntax theme
-- Shows the actual "swap the base_url" moment from the real architecture — e.g.:
-```python
-client = OpenAI(
-    base_url="https://api.voltkey.dev/v1",
-    api_key="sk-voltkey-..."
-)
-```
-- Caption beneath, plain: "Any OpenAI SDK. Any language. One line changes."
-- This section is a credibility anchor for the exact audience (developers who read code faster than they read marketing copy) — don't over-decorate it
+Same as v1 with `id="features"` added, updated colors.
 
 ---
 
-## 8. Section: Live counter (optional, use only if the number is real)
+## 7. Section: Providers
 
-- A single honest stat, not a fake animated-up counter with invented precision: "X requests routed today" or similar, sourced from real usage once there is any
-- If there's no real data yet at launch, cut this section entirely rather than fabricate a number — a placeholder stat undermines the exact trust this audience is choosing you for
-
----
-
-## 9. CTA band
-
-- Full-width, `--bg-surface`, centered content
-- H2 (Libre Baskerville): "Stop juggling five free tiers."
-- One CTA: `Get API key` (same treatment as hero primary)
-- The circuit-trace runs the full width of this band's top border, slow and ambient
+Same as v1 with `id="providers"` added, updated colors.
 
 ---
 
-## 10. Footer
+## 8. Section: Integration — the code moment
 
-Standard three/four-column structure, real company footer register (not a dev-tool afterthought):
-
-| About | Company | Resources | Contact |
-|---|---|---|---|
-| One-line mission statement | Careers, Blog | Docs, Changelog, Status | Contact us, Twitter/X, GitHub |
-
-- Space Mono throughout, `--text-muted` links brightening to `--text-primary` on hover, no `--volt` in footer body text (keep the accent reserved for actions, not everywhere)
-- Bottom row: small bolt mark + copyright line, hairline top border
+Same as v1 with `id="integration"` added, updated colors.
 
 ---
 
-## 11. Post-footer: the giant wordmark
+## 9. Section: Security (NEW)
 
-- Directly beneath the footer, before the page ends: `VOLTKEY` set in Stick No Bills, massive scale (font-size roughly 30-40% of viewport width), color `--text-primary` at **6% opacity**, letter-spacing tightened
-- Cropped so only the top ~50-55% of the letterforms is visible — the bottom half runs off the viewport edge with no fade/gradient mask needed, a hard crop is more in keeping with the sharp-edge visual language than a soft fade-out would be
-- No interaction, no hover state — this is purely a closing visual beat, the brand as a monument rather than a UI element
-
----
-
-## 12. Motion and animation spec
-
-- **Page load**: the bolt mark in the nav "strikes" once on load (a quick 200ms flash along its own path), then the ambient hero circuit-trace begins its slow loop. One orchestrated moment, not a cascade of fade-ins on every element.
-- **Scroll-triggered**: sections fade/rise in lightly (12px translate, 400ms, ease-out) — restrained, not staggered per-word or per-character
-- **Hover micro-interactions**: card edges spark (the circuit-trace runs the hairline border once) on hover, buttons get the same treatment plus a `--volt-dim` glow bloom
-- **Ambient**: only one trace is ever "live"/animated at a time per section — multiple simultaneous moving sparks read as busy/AI-generated-feeling rather than deliberate
-- **Reduced motion**: all circuit-trace animation and scroll-reveals must respect `prefers-reduced-motion` — fall back to static hairline borders at `--border-active` opacity and instant section appearance, no exceptions
+- `id="security"`, eyebrow: `SECURITY`
+- H2: "Your keys. Your data. Our obsession."
+- Grid of 4 security features with lightning bolt shield accents:
+  1. **End-to-End Encryption**: "All API traffic is encrypted in transit via TLS 1.3. Keys are encrypted at rest with AES-256."
+  2. **Zero Data Logging**: "We route your requests. We don't read them. No prompt logging, no training data collection."
+  3. **Key Isolation**: "Each user's provider keys are stored in isolated, encrypted vaults. No shared credential pools."
+  4. **Compliance Path**: "Building toward SOC 2 Type II. Security isn't an afterthought — it's the infrastructure."
+- shadcn Accordion below for expandable FAQ-style security details
 
 ---
 
-## 13. What this design deliberately avoids (recap, confirm before build)
+## 10. CTA band
+
+Same as v1 with updated colors.
+
+---
+
+## 11. Footer (simplified)
+
+Two-column layout instead of four:
+
+| About | Connect |
+|---|---|
+| One-line mission + section links | Twitter/X, GitHub, Discord |
+
+- Space Mono throughout, `--text-muted` links
+- Bottom row: bolt mark + copyright
+- No "Company" or "Resources" columns
+
+---
+
+## 12. Post-footer: the giant wordmark
+
+Same as v1.
+
+---
+
+## 13. Motion and animation spec
+
+- **Page load**: bolt mark strikes in nav (200ms), then hero lightning bolt strikes (300ms, with glow bloom), then ambient circuit-trace begins
+- **Scroll-triggered**: sections fade/rise in lightly (12px translate, 400ms, ease-out)
+- **Hover micro-interactions**: card edges spark, buttons glow, nav links show a small bolt icon
+- **Lightning bolt ambient**: after initial strike, the hero bolt holds at 8% opacity with a slow 4s flicker cycle
+- **Reduced motion**: all animation and reveals respect `prefers-reduced-motion`
+
+---
+
+## 14. shadcn/ui components
+
+Used sparingly where they add genuine polish:
+- **Badge**: eyebrow labels in hero and section headers
+- **Card**: Mission section pillars, Security feature cards
+- **Separator**: clean dividers between content blocks
+- **Accordion**: Security FAQ details
+
+These are pure client-side UI primitives. No backend dependencies. Styled to match the VoltKey token system.
+
+---
+
+## 15. What this design deliberately avoids (recap)
 
 - No purple-to-blue gradient anywhere
 - No Inter, no default system sans as a primary face
 - No cream background + terracotta accent pairing
-- No 01/02/03 numbered markers (no section here is a true fixed sequence)
+- No 01/02/03 numbered markers
 - No uniform 3-card feature grid (bento layout instead)
 - No pure `#000`/`#FFF` flat fields
 - No drop shadows for depth — hairlines and surface-contrast only
 - No auto-scrolling logo marquee
 - No fabricated stats
+- No company/resources/careers bloat in footer
+- No route-based nav for page sections (anchor scroll instead)
 
 ---
 
-## 14. Accessibility floor (non-negotiable regardless of aesthetic)
+## 16. Accessibility floor (non-negotiable regardless of aesthetic)
 
-- All text meets WCAG AA contrast against its background (`--text-muted` on `--bg-void` needs checking at final values — adjust lightness if it falls short, don't skip the check for the sake of the palette)
-- Visible keyboard focus rings on every interactive element (a `--volt` outline, 2px, offset 2px — the one place an outline is expected, not decorative)
-- All animation respects `prefers-reduced-motion` as specified above
-- Code block content remains selectable/copyable, not rendered as an image
+- All text meets WCAG AA contrast against its background
+- Visible keyboard focus rings on every interactive element (`--volt` outline, 2px, offset 2px)
+- All animation respects `prefers-reduced-motion`
+- Code block content remains selectable/copyable
+- Anchor navigation works with keyboard
+- Mobile menu is accessible via button with aria-expanded

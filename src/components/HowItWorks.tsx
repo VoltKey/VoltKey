@@ -4,6 +4,7 @@ import { RoutingDiagram } from "./RoutingDiagram";
 export function HowItWorks() {
   return (
     <section
+      id="how-it-works"
       className="relative border-t"
       style={{ borderColor: "#28282D" }}
       aria-labelledby="how-it-works-heading"

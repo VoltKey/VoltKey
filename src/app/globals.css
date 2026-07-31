@@ -8,9 +8,9 @@
   --border-hairline: #28282D;
   --text-primary: #EDEAE1;
   --text-muted: #87868C;
-  --volt: #E8A33D;
-  --volt-dim: rgba(232, 163, 61, 0.14);
-  --border-active: rgba(232, 163, 61, 0.40);
+  --volt: #F07A30;
+  --volt-dim: rgba(240, 122, 48, 0.14);
+  --border-active: rgba(240, 122, 48, 0.40);
   --radius: 2px;
 }
 
@@ -19,6 +19,7 @@ html {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -87,9 +88,60 @@ body {
   to   { stroke-dashoffset: -1040; }
 }
 
+/* ─── Lightning bolt effects ─── */
+@keyframes lightning-strike {
+  0%   { opacity: 0; filter: brightness(1) drop-shadow(0 0 0 transparent); }
+  8%   { opacity: 1; filter: brightness(3) drop-shadow(0 0 30px rgba(240, 122, 48, 0.9)); }
+  15%  { opacity: 0.4; filter: brightness(1.5) drop-shadow(0 0 15px rgba(240, 122, 48, 0.5)); }
+  22%  { opacity: 1; filter: brightness(2.5) drop-shadow(0 0 25px rgba(240, 122, 48, 0.8)); }
+  40%  { opacity: 0.6; filter: brightness(1.2) drop-shadow(0 0 8px rgba(240, 122, 48, 0.3)); }
+  100% { opacity: 0.08; filter: brightness(1) drop-shadow(0 0 4px rgba(240, 122, 48, 0.15)); }
+}
+
+@keyframes bolt-flicker {
+  0%, 100% { opacity: 0.06; filter: drop-shadow(0 0 2px rgba(240, 122, 48, 0.1)); }
+  25%      { opacity: 0.1;  filter: drop-shadow(0 0 6px rgba(240, 122, 48, 0.2)); }
+  50%      { opacity: 0.05; filter: drop-shadow(0 0 1px rgba(240, 122, 48, 0.05)); }
+  75%      { opacity: 0.12; filter: drop-shadow(0 0 8px rgba(240, 122, 48, 0.25)); }
+}
+
+@keyframes lightning-glow-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 0.6; }
+}
+
+/* Lightning bolt hero element */
+.lightning-bolt {
+  animation: lightning-strike 800ms ease-out forwards;
+}
+
+.lightning-bolt-ambient {
+  animation: bolt-flicker 4s ease-in-out infinite;
+  animation-delay: 800ms;
+}
+
 /* Bolt load animation */
 .bolt-mark {
   animation: bolt-strike 600ms ease-out both;
+}
+
+/* ─── Accordion animations ─── */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 200ms ease-out;
+}
+
+.animate-accordion-up {
+  animation: accordion-up 200ms ease-out;
 }
 
 /* ─── Reduced motion ─── */
@@ -101,6 +153,10 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -129,7 +185,7 @@ body {
 
 /* ─── Selection ─── */
 ::selection {
-  background: rgba(232, 163, 61, 0.25);
+  background: rgba(240, 122, 48, 0.25);
   color: var(--text-primary);
 }
 
@@ -188,9 +244,9 @@ body {
 
 .btn-volt:hover {
   box-shadow:
-    0 0 0 1px rgba(232, 163, 61, 0.5),
-    0 0 20px rgba(232, 163, 61, 0.25),
-    0 0 6px rgba(232, 163, 61, 0.35);
+    0 0 0 1px rgba(240, 122, 48, 0.5),
+    0 0 20px rgba(240, 122, 48, 0.25),
+    0 0 6px rgba(240, 122, 48, 0.35);
 }
 
 /* ─── Button ghost ─── */
@@ -275,4 +331,82 @@ body {
   .bento-tile {
     min-height: auto;
   }
+}
+
+/* ─── Security card hover ─── */
+.security-card {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 300ms ease;
+}
+
+.security-card:hover {
+  border-color: var(--border-active);
+}
+
+.security-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--volt), transparent);
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.security-card:hover::before {
+  opacity: 0.6;
+}
+
+/* ─── Mission card shimmer ─── */
+.mission-card {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 300ms ease, transform 300ms ease;
+}
+
+.mission-card:hover {
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+}
+
+.mission-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    var(--volt-dim) 0%,
+    transparent 70%
+  );
+  transition: opacity 400ms ease;
+  pointer-events: none;
+}
+
+.mission-card:hover::after {
+  opacity: 1;
+}
+
+/* ─── Mobile nav menu ─── */
+.mobile-nav-overlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.mobile-nav-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-nav-panel {
+  transform: translateX(100%);
+  transition: transform 300ms ease;
+}
+
+.mobile-nav-panel.open {
+  transform: translateX(0);
 }

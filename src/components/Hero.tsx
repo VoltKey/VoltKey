@@ -5,6 +5,74 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { HeroBackground } from "./HeroBackground";
 import { AnimateIn } from "./AnimateIn";
+import { Badge } from "./ui/badge";
+
+/**
+ * Lightning bolt SVG that strikes on load, then holds at low opacity with ambient flicker.
+ */
+function LightningBolt() {
+  const [struck, setStruck] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setStruck(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!struck) return null;
+
+  return (
+    <div
+      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+      aria-hidden="true"
+    >
+      <svg
+        width="180"
+        height="320"
+        viewBox="0 0 180 320"
+        fill="none"
+        className="lightning-bolt"
+        style={{ opacity: 0 }}
+      >
+        {/* Main bolt */}
+        <path
+          d="M 100 0 L 60 130 L 95 130 L 50 220 L 90 220 L 30 320 L 120 195 L 82 195 L 130 105 L 88 105 Z"
+          fill="#F07A30"
+          opacity="0.15"
+        />
+        {/* Inner glow line */}
+        <path
+          d="M 95 10 L 65 125 L 92 125 L 55 215 L 88 215 L 40 305"
+          stroke="#F07A30"
+          strokeWidth="2"
+          fill="none"
+          opacity="0.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Hot center line */}
+        <path
+          d="M 92 20 L 68 120 L 90 120 L 58 210 L 86 210 L 45 295"
+          stroke="#EDEAE1"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* Ambient glow overlay after strike */}
+      <div
+        className="absolute inset-0 pointer-events-none lightning-bolt-ambient"
+        style={{
+          background:
+            "radial-gradient(ellipse 30% 40% at 50% 45%, rgba(240, 122, 48, 0.06) 0%, transparent 100%)",
+          opacity: 0,
+        }}
+      />
+    </div>
+  );
+}
 
 export function Hero() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -32,6 +100,9 @@ export function Hero() {
       {/* PCB circuit trace background */}
       <HeroBackground />
 
+      {/* Lightning bolt strike */}
+      <LightningBolt />
+
       {/* Radial fade overlay so text stays legible */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -44,7 +115,13 @@ export function Hero() {
       <div className="relative z-10 mx-auto w-full max-w-content px-6 flex flex-col items-center text-center">
         {/* Eyebrow */}
         <AnimateIn delay={0}>
-          <p className="eyebrow text-volt mb-6">ROUTE ANYTHING · MISS NOTHING</p>
+          <Badge
+            variant="outline"
+            className="mb-6 font-display uppercase tracking-widest text-volt border-volt/30"
+            style={{ fontSize: "11px", letterSpacing: "0.08em" }}
+          >
+            ⚡ Route Anything · Miss Nothing
+          </Badge>
         </AnimateIn>
 
         {/* H1 */}
@@ -85,15 +162,21 @@ export function Hero() {
             >
               {isLoggedIn ? "Go to Dashboard →" : "Get API key"}
             </Link>
-            <Link
-              href="/models"
+            <a
+              href="#features"
+              onClick={(e) => {
+                e.preventDefault();
+                document
+                  .querySelector("#features")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
               className="btn-ghost font-mono text-sm px-6 py-3 inline-flex items-center gap-2"
             >
-              Explore models{" "}
+              Explore features{" "}
               <span className="arrow" aria-hidden="true">
                 →
               </span>
-            </Link>
+            </a>
           </div>
         </AnimateIn>
 

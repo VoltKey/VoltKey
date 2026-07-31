@@ -33,13 +33,13 @@ export function CTABand() {
             y1="0.5"
             x2="1200"
             y2="0.5"
-            stroke="#E8A33D"
+            stroke="#F07A30"
             strokeWidth="1.5"
             pathLength="1000"
             strokeDasharray="60 940"
             style={{
               animation: "band-trace 6s linear infinite",
-              filter: "drop-shadow(0 0 4px rgba(232,163,61,0.7))",
+              filter: "drop-shadow(0 0 4px rgba(240,122,48,0.7))",
             }}
           />
         </svg>

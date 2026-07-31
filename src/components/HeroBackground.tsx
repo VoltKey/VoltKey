@@ -102,7 +102,7 @@ export function HeroBackground() {
         <path
           key={`spark-${activeIdx}`}
           d={PCB_PATHS[activeIdx]}
-          stroke="#E8A33D"
+          stroke="#F07A30"
           strokeWidth="1.5"
           fill="none"
           pathLength="1000"
@@ -110,7 +110,7 @@ export function HeroBackground() {
           strokeDashoffset="0"
           style={{
             animation: `spark-travel ${CYCLE_MS}ms linear forwards`,
-            filter: "drop-shadow(0 0 5px rgba(232, 163, 61, 0.65))",
+            filter: "drop-shadow(0 0 5px rgba(240, 122, 48, 0.65))",
           }}
         />
       )}
@@ -119,7 +119,7 @@ export function HeroBackground() {
       {reducedMotion && (
         <path
           d={PCB_PATHS[activeIdx]}
-          stroke="rgba(232,163,61,0.4)"
+          stroke="rgba(240,122,48,0.4)"
           strokeWidth="1"
           fill="none"
         />

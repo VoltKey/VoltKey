@@ -28,17 +28,17 @@ function Sparkline() {
       {/* Fill area */}
       <path
         d={`${d} L ${w} ${h} L 0 ${h} Z`}
-        fill="rgba(232,163,61,0.07)"
+        fill="rgba(240,122,48,0.07)"
       />
       {/* Line */}
-      <path d={d} stroke="#E8A33D" strokeWidth="1.5" fill="none" />
+      <path d={d} stroke="#F07A30" strokeWidth="1.5" fill="none" />
       {/* Current point dot */}
       <circle
         cx={(points.length - 1) * xStep}
         cy={h - ((points[points.length - 1] - min) / (max - min)) * h}
         r="3"
-        fill="#E8A33D"
-        style={{ filter: "drop-shadow(0 0 4px rgba(232,163,61,0.8))" }}
+        fill="#F07A30"
+        style={{ filter: "drop-shadow(0 0 4px rgba(240,122,48,0.8))" }}
       />
     </svg>
   );
@@ -85,6 +85,7 @@ export function Features() {
 
   return (
     <section
+      id="features"
       className="border-t"
       style={{ borderColor: "#28282D" }}
       aria-labelledby="features-heading"
