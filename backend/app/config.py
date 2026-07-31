@@ -18,6 +18,14 @@ def _fix_db_url(url: str) -> str:
     return url
 
 
+def _debug_db_url(url: str) -> None:
+    """Log a redacted version of DATABASE_URL so we can verify the host is correct."""
+    import re
+    # Redact password but show host, port, and dbname
+    redacted = re.sub(r"://([^:]+):([^@]+)@", r"://\1:****@", url)
+    print(f"[VoltKey] DATABASE_URL (redacted): {redacted}")
+
+
 def _lock_path() -> str:
     return os.path.join(tempfile.gettempdir(), ".voltkey_fernet_generate.lock")
 
@@ -75,6 +83,9 @@ class Settings:
     # ── Database ───────────────────────────────────────────────────────────────
     DATABASE_URL: str = _fix_db_url(os.getenv("DATABASE_URL", ""))
     DB_ECHO: bool = os.getenv("DB_ECHO", "false").lower() == "true"
+
+    # Debug: print redacted URL at startup so we can verify the host
+    _debug_db_url(DATABASE_URL)
 
     # ── Supabase Auth ──────────────────────────────────────────────────────────
     # SUPABASE_JWT_SECRET is used by the backend to verify dashboard JWTs.
