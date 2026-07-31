@@ -47,9 +47,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ── CORS — must be added BEFORE other middleware so it wraps outermost ────────
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r".*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
 # ── Rate limiting middleware ──────────────────────────────────────────────────
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
+    # Always let CORS preflight through
+    if request.method == "OPTIONS":
+        return await call_next(request)
     if request.url.path.startswith("/api/") or request.url.path.startswith("/v1/"):
         client_ip = request.client.host if request.client else "unknown"
         ok, retry_after = _rate_limiter.check(client_ip)
@@ -68,15 +81,6 @@ async def rate_limit_middleware(request: Request, call_next):
                 },
             )
     return await call_next(request)
-
-# ── CORS ──────────────────────────────────────────────────────────────────────
-app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r".*",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
